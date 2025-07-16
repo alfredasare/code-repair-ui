@@ -18,6 +18,15 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import { NavUser } from "@/components/nav-user";
 
 const menuItems = [
@@ -44,6 +53,35 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+
+  // Generate breadcrumbs based on current path
+  const getBreadcrumbs = () => {
+    const currentItem = menuItems.find((item) => item.url === pathname);
+    if (currentItem) {
+      return (
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem className="hidden md:block">
+              <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="hidden md:block" />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{currentItem.title}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      );
+    }
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Dashboard</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  };
 
   return (
     <SidebarProvider>
@@ -109,8 +147,10 @@ export default function DashboardLayout({
         </Sidebar>
 
         <SidebarInset className="flex-1">
-          <header className="sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b border-zinc-900/7.5 bg-background px-4">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b border-zinc-900/7.5 bg-background px-4">
             <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            {getBreadcrumbs()}
           </header>
           <div className="flex-1 p-6">{children}</div>
         </SidebarInset>
