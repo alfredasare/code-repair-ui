@@ -22,14 +22,14 @@ import { NavUser } from "@/components/nav-user";
 
 const menuItems = [
   {
-    title: "New Assessment",
+    title: "New Repair",
     icon: FileText,
-    url: "/dashboard/new-assessment",
+    url: "/dashboard/new-repair",
   },
   {
-    title: "Assessment History",
+    title: "Repair History",
     icon: History,
-    url: "/dashboard/assessment-history",
+    url: "/dashboard/repair-history",
   },
   {
     title: "Settings",
@@ -65,7 +65,9 @@ export default function DashboardLayout({
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">CodeRepair</span>
-                    <span className="truncate text-xs text-gray-400">Assessment Tool</span>
+                    <span className="truncate text-xs text-gray-400">
+                      Assessment Tool
+                    </span>
                   </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -107,7 +109,7 @@ export default function DashboardLayout({
         </Sidebar>
 
         <SidebarInset className="flex-1">
-          <header className="sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+          <header className="sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b border-zinc-900/7.5 bg-background px-4">
             <SidebarTrigger className="-ml-1" />
           </header>
           <div className="flex-1 p-6">{children}</div>
