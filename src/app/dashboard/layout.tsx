@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, History, Settings } from "lucide-react";
+import { FileText, History, Settings, Plus } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -32,7 +33,7 @@ import { NavUser } from "@/components/nav-user";
 const menuItems = [
   {
     title: "New Repair",
-    icon: FileText,
+    icon: Plus,
     url: "/dashboard/new-repair",
   },
   {
@@ -46,6 +47,14 @@ const menuItems = [
     url: "/dashboard/settings",
   },
 ];
+
+// Generate dummy repair data for testing
+const repairItems = Array.from({ length: 30 }, (_, i) => ({
+  id: `repair-${i + 1}`,
+  title: `Repair ${i + 1}`,
+  url: `/dashboard/repair/${i + 1}`,
+  date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000), // Random date within last 30 days
+}));
 
 export default function DashboardLayout({
   children,
@@ -72,6 +81,26 @@ export default function DashboardLayout({
         </Breadcrumb>
       );
     }
+
+    // Check if it's a repair detail page
+    const repairMatch = pathname.match(/\/dashboard\/repair\/(\d+)/);
+    if (repairMatch) {
+      const repairNumber = repairMatch[1];
+      return (
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem className="hidden md:block">
+              <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="hidden md:block" />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Repair {repairNumber}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      );
+    }
+
     return (
       <Breadcrumb>
         <BreadcrumbList>
@@ -112,7 +141,8 @@ export default function DashboardLayout({
             </SidebarMenu>
           </SidebarHeader>
 
-          <SidebarContent className="bg-black">
+          <SidebarContent className="bg-black flex flex-col">
+            {/* Main Navigation - Always Visible */}
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -131,6 +161,34 @@ export default function DashboardLayout({
                     </SidebarMenuItem>
                   ))}
                 </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <Separator className="bg-gray-800 my-2" />
+
+            {/* Scrollable Repairs Section */}
+            <SidebarGroup className="flex-1 min-h-0 group-data-[collapsible=icon]:hidden">
+              <SidebarGroupLabel className="text-gray-400 text-xs font-medium px-2 py-1">
+                Repairs
+              </SidebarGroupLabel>
+              <SidebarGroupContent className="flex-1 overflow-hidden">
+                <div className="overflow-y-auto h-full">
+                  <SidebarMenu>
+                    {repairItems.map((repair) => (
+                      <SidebarMenuItem key={repair.id}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname === repair.url}
+                          className="text-white hover:bg-gray-800 data-[active=true]:bg-gray-800 data-[active=true]:text-white"
+                        >
+                          <Link href={repair.url}>
+                            <span className="truncate">{repair.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </div>
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
