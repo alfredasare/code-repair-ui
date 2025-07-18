@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
 // Dynamically import ReactDiffViewer to avoid SSR issues
@@ -35,10 +36,13 @@ if(a === 10) {
   console.log('bar')
 }`;
 
-export default function RepairHistory() {
+export default function RepairDetail() {
+  const params = useParams();
+  const repairId = params.id as string;
+
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-900">Repair History</h1>
+      <h1 className="text-3xl font-bold text-gray-900">Repair {repairId}</h1>
 
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">

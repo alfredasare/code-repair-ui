@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, History, Settings, Plus } from "lucide-react";
+import { FileText, Settings, Plus } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -35,11 +35,6 @@ const menuItems = [
     title: "New Repair",
     icon: Plus,
     url: "/dashboard/new-repair",
-  },
-  {
-    title: "Repair History",
-    icon: History,
-    url: "/dashboard/repair-history",
   },
   {
     title: "Settings",
