@@ -115,7 +115,7 @@ export default function DashboardLayout({
           collapsible="icon"
           className="bg-black border-r-0"
         >
-          <SidebarHeader>
+          <SidebarHeader className="bg-black">
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton

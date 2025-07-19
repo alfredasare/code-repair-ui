@@ -1,16 +1,40 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+
+const schema = yup.object({
+  cweId: yup
+    .string()
+    .required("CWE ID is required")
+    .matches(/^\d+$/, "CWE ID must be a number"),
+  cveId: yup
+    .string()
+    .required("CVE ID is required")
+    .matches(/^\d+-\d+$/, "CVE ID must be two numbers separated by a hyphen"),
+  codeSnippet: yup
+    .string()
+    .required("Code snippet is required")
+});
 
 export default function NewAssessment() {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm({
+    resolver: yupResolver(schema)
+  });
+
+  const onSubmit = (data: { cweId: string; cveId: string; codeSnippet: string }) => {
+    console.log(data);
   };
 
   const handleReset = () => {
-    const form = document.getElementById("assessment-form") as HTMLFormElement;
-    form?.reset();
+    reset();
   };
 
   return (
@@ -25,7 +49,7 @@ export default function NewAssessment() {
         </p>
       </div>
 
-      <form id="assessment-form" onSubmit={handleSubmit} className="space-y-6">
+      <form id="assessment-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* CWE ID Field */}
         <div>
           <label
@@ -41,11 +65,16 @@ export default function NewAssessment() {
               </div>
               <input
                 id="cwe-id"
-                name="cwe-id"
                 type="text"
                 placeholder="119"
+                {...register("cweId")}
                 className="block min-w-0 grow py-1.5 pr-3 pl-1 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
               />
+            </div>
+            <div className="h-5">
+              {errors.cweId && (
+                <p className="text-sm text-red-600 mt-1">{errors.cweId.message}</p>
+              )}
             </div>
           </div>
         </div>
@@ -65,11 +94,16 @@ export default function NewAssessment() {
               </div>
               <input
                 id="cve-id"
-                name="cve-id"
                 type="text"
                 placeholder="2025-88364"
+                {...register("cveId")}
                 className="block min-w-0 grow py-1.5 pr-3 pl-1 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
               />
+            </div>
+            <div className="h-5">
+              {errors.cveId && (
+                <p className="text-sm text-red-600 mt-1">{errors.cveId.message}</p>
+              )}
             </div>
           </div>
         </div>
@@ -85,11 +119,16 @@ export default function NewAssessment() {
           <div className="mt-2">
             <textarea
               id="code-snippet"
-              name="code-snippet"
               rows={5}
               placeholder="Paste your code snippet here..."
+              {...register("codeSnippet")}
               className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
             />
+            <div className="h-5">
+              {errors.codeSnippet && (
+                <p className="text-sm text-red-600 mt-1">{errors.codeSnippet.message}</p>
+              )}
+            </div>
           </div>
         </div>
 
