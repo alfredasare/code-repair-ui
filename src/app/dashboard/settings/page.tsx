@@ -57,11 +57,8 @@ export default function Settings() {
     isLoading: patternsLoading,
     error: patternsError,
   } = usePatterns();
-  const {
-    data: userSettings,
-    isLoading: userSettingsLoading,
-    error: userSettingsError,
-  } = useUserSettings();
+  const { data: userSettings, isLoading: userSettingsLoading } =
+    useUserSettings();
 
   const createUserSettings = useCreateUserSettings();
   const updateUserSettings = useUpdateUserSettings();
@@ -71,7 +68,8 @@ export default function Settings() {
     if (modelsData?.models.length && patternsData?.patterns.length) {
       return {
         llmModel: userSettings?.model_id || modelsData.models[0].model_id,
-        pattern: userSettings?.pattern_id || patternsData.patterns[0].pattern_id,
+        pattern:
+          userSettings?.pattern_id || patternsData.patterns[0].pattern_id,
         retrievalK: userSettings?.retrievalK || 5,
       };
     }
@@ -177,7 +175,11 @@ export default function Settings() {
             name="llmModel"
             control={control}
             render={({ field }) => (
-              <Select key={`model-${formDefaults.llmModel}`} value={field.value} onValueChange={field.onChange}>
+              <Select
+                key={`model-${formDefaults.llmModel}`}
+                value={field.value}
+                onValueChange={field.onChange}
+              >
                 <SelectTrigger className="w-full cursor-pointer focus-visible:ring-1">
                   <SelectValue placeholder="Select a model" />
                 </SelectTrigger>
