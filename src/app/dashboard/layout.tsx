@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { NavUser } from "@/components/nav-user";
+import { useAuthStore } from "@/lib/auth/auth-store";
 
 const menuItems = [
   {
@@ -57,6 +58,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user } = useAuthStore();
 
   // Generate breadcrumbs based on current path
   const getBreadcrumbs = () => {
@@ -189,12 +191,14 @@ export default function DashboardLayout({
           </SidebarContent>
 
           <SidebarFooter className="bg-black border-t border-gray-800 pt-4">
-            <NavUser
-              user={{
-                name: "John Doe",
-                email: "john@example.com",
-              }}
-            />
+            {user && (
+              <NavUser
+                user={{
+                  username: user.username || "",
+                  email: user.email,
+                }}
+              />
+            )}
           </SidebarFooter>
           <SidebarRail />
         </Sidebar>

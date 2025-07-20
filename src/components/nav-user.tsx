@@ -1,6 +1,8 @@
 "use client";
 
 import { ChevronsUpDown, LogOut } from "lucide-react";
+import { useAuthStore } from "@/lib/auth/auth-store";
+import { useRouter } from "next/navigation";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -22,12 +24,25 @@ export function NavUser({
   user,
 }: {
   user: {
-    name: string;
+    username: string;
     email: string;
     avatar?: string;
   };
 }) {
   const { isMobile } = useSidebar();
+  const { logout } = useAuthStore();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/sign-in");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Still redirect to sign-in even if logout API fails
+      router.push("/sign-in");
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -39,9 +54,9 @@ export function NavUser({
               className="text-white hover:bg-gray-800 data-[state=open]:bg-gray-800 data-[state=open]:text-white"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={user.avatar} alt={user.username} />
                 <AvatarFallback className="rounded-lg bg-gray-700 text-white">
-                  {user.name
+                  {user.username
                     .split(" ")
                     .map((n) => n[0])
                     .join("")}
@@ -49,7 +64,7 @@ export function NavUser({
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                 <span className="truncate font-medium text-white">
-                  {user.name}
+                  {user.username}
                 </span>
                 <span className="truncate text-xs text-gray-400">
                   {user.email}
@@ -67,9 +82,9 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage src={user.avatar} alt={user.username} />
                   <AvatarFallback className="rounded-lg bg-gray-700 text-white">
-                    {user.name
+                    {user.username
                       .split(" ")
                       .map((n) => n[0])
                       .join("")}
@@ -77,7 +92,7 @@ export function NavUser({
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium text-white">
-                    {user.name}
+                    {user.username}
                   </span>
                   <span className="truncate text-xs text-gray-400">
                     {user.email}
@@ -86,7 +101,10 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-gray-800" />
-            <DropdownMenuItem className="text-white hover:bg-gray-800 focus:bg-gray-800 cursor-pointer">
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="text-white hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+            >
               <LogOut className="h-4 w-4 mr-2" />
               Log out
             </DropdownMenuItem>
