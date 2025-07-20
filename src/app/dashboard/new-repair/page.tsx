@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { useUserSettings } from "@/hooks/use-settings";
+import { useQuery, useGenerateRecommendation } from "@/hooks/use-assessment";
+import { FullScreenLoader } from "@/components/ui/full-screen-loader";
+import { AssessmentAPI } from "@/lib/api/assessment";
 
 const schema = yup.object({
   cweId: yup
@@ -20,6 +24,10 @@ const schema = yup.object({
 });
 
 export default function NewAssessment() {
+  const { data: userSettings } = useUserSettings();
+  const queryMutation = useQuery();
+  const generateRecommendationMutation = useGenerateRecommendation();
+
   const {
     register,
     handleSubmit,
@@ -29,13 +37,59 @@ export default function NewAssessment() {
     resolver: yupResolver(schema)
   });
 
-  const onSubmit = (data: { cweId: string; cveId: string; codeSnippet: string }) => {
-    console.log(data);
+  const onSubmit = async (data: { cweId: string; cveId: string; codeSnippet: string }) => {
+    if (!userSettings) {
+      console.error("User settings not available");
+      return;
+    }
+
+    const cweId = `CWE-${data.cweId}`;
+    const cveId = `CVE-${data.cveId}`;
+
+    try {
+      // Step 1: Query the database
+      const queryData = {
+        pattern_id: userSettings.pattern_id,
+        cwe_id: cweId,
+        cve_id: cveId,
+        additional_params: {
+          top_k: userSettings.retrievalK
+        }
+      };
+
+      const queryResult = await queryMutation.mutateAsync(queryData);
+      console.log("Query result:", queryResult);
+
+      // Step 2: Generate recommendation using the retrieved context
+      const recommendationData = {
+        model_type: AssessmentAPI.getModelType(userSettings.model_id),
+        model_id: userSettings.model_id,
+        vulnerable_code: data.codeSnippet,
+        cwe_id: cweId,
+        cve_id: cveId,
+        retrieved_context: queryResult.results.formatted_results || ""
+      };
+
+      const recommendationResult = await generateRecommendationMutation.mutateAsync(recommendationData);
+      console.log("Recommendation result:", recommendationResult);
+
+    } catch (error) {
+      console.error("Assessment workflow failed:", error);
+    }
   };
 
   const handleReset = () => {
     reset();
   };
+
+  // Show loading screen with appropriate message
+  if (queryMutation.isPending) {
+    return <FullScreenLoader text="Querying database for CWE..." />;
+  }
+
+  if (generateRecommendationMutation.isPending) {
+    return <FullScreenLoader text="Generating recommendations..." />;
+  }
 
   return (
     <div className="max-w-3xl mx-auto mt-10">
