@@ -15,6 +15,7 @@ import {
 import { FullScreenLoader } from "@/components/ui/full-screen-loader";
 import { AssessmentAPI } from "@/lib/api/assessment";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 const schema = yup.object({
   cweId: yup
@@ -36,6 +37,7 @@ export default function NewAssessment() {
   const evaluateMutation = useEvaluate();
   const storeResultsMutation = useStoreResults();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -121,6 +123,9 @@ export default function NewAssessment() {
       };
 
       const storeResult = await storeResultsMutation.mutateAsync(storeData);
+
+      // Invalidate assessments list to show the new assessment in sidebar
+      queryClient.invalidateQueries({ queryKey: ['assessments'] });
 
       // Redirect to the repair detail page
       router.push(`/dashboard/repair/${storeResult.assessment_id}`);
@@ -263,7 +268,7 @@ export default function NewAssessment() {
         <div className="flex gap-3 pt-4">
           <Button
             type="submit"
-            className="bg-black text-white hover:bg-gray-800 focus:ring-black"
+            className="bg-black text-white hover:bg-gray-800 focus:ring-black cursor-pointer"
           >
             Submit Assessment
           </Button>
@@ -271,7 +276,7 @@ export default function NewAssessment() {
             type="button"
             variant="outline"
             onClick={handleReset}
-            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
           >
             Reset
           </Button>

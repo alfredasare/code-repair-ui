@@ -186,24 +186,26 @@ export default function DashboardLayout({
                     </div>
                   ) : (
                     <SidebarMenu>
-                      {assessments.assessments.map((assessment) => {
-                        const displayName = `${assessment.cwe_id}-${assessment.cve_id}-${assessment.model_id}`;
-                        const url = `/dashboard/repair/${assessment.id}`;
-                        
-                        return (
-                          <SidebarMenuItem key={assessment.id}>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={pathname === url}
-                              className="text-white hover:bg-gray-800 data-[active=true]:bg-gray-800 data-[active=true]:text-white"
-                            >
-                              <Link href={url}>
-                                <span className="truncate">{displayName}</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        );
-                      })}
+                      {assessments.assessments
+                        .sort((a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime())
+                        .map((assessment) => {
+                          const displayName = `${assessment.cwe_id}-${assessment.cve_id}-${assessment.model_id}`;
+                          const url = `/dashboard/repair/${assessment.id}`;
+                          
+                          return (
+                            <SidebarMenuItem key={assessment.id}>
+                              <SidebarMenuButton
+                                asChild
+                                isActive={pathname === url}
+                                className="text-white hover:bg-gray-800 data-[active=true]:bg-gray-800 data-[active=true]:text-white"
+                              >
+                                <Link href={url}>
+                                  <span className="truncate">{displayName}</span>
+                                </Link>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          );
+                        })}
                     </SidebarMenu>
                   )}
                 </div>
