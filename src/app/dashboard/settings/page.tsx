@@ -21,6 +21,7 @@ import {
 } from "@/hooks/use-settings";
 import { Spinner } from "@/components/ui/spinner";
 import React from "react";
+import { toast } from "sonner";
 
 // We'll set defaults dynamically when data loads
 
@@ -117,8 +118,25 @@ export default function Settings() {
         // No existing settings, create new ones
         await createUserSettings.mutateAsync(settingsData);
       }
+
+      // Show success toast
+      toast("Settings saved successfully", {
+        description: "Your preferences have been updated.",
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(),
+        },
+      });
     } catch (error) {
       console.error("Failed to save settings:", error);
+      // Show error toast
+      toast("Failed to save settings", {
+        description: "Please try again later.",
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(),
+        },
+      });
     }
   };
 
@@ -176,7 +194,9 @@ export default function Settings() {
             control={control}
             render={({ field }) => (
               <Select
-                key={`model-${userSettings?.model_id || 'default'}-${field.value}`}
+                key={`model-${userSettings?.model_id || "default"}-${
+                  field.value
+                }`}
                 value={field.value || ""}
                 onValueChange={field.onChange}
               >
