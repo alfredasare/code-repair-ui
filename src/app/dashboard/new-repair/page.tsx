@@ -16,6 +16,7 @@ import { FullScreenLoader } from "@/components/ui/full-screen-loader";
 import { AssessmentAPI } from "@/lib/api/assessment";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const schema = yup.object({
   cweId: yup
@@ -126,6 +127,15 @@ export default function NewAssessment() {
 
       // Invalidate assessments list to show the new assessment in sidebar
       queryClient.invalidateQueries({ queryKey: ['assessments'] });
+
+      // Show success toast
+      toast("Repair successfully created", {
+        description: "Your code repair assessment has been generated and saved.",
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(),
+        },
+      });
 
       // Redirect to the repair detail page
       router.push(`/dashboard/repair/${storeResult.assessment_id}`);
