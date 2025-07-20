@@ -5,9 +5,16 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useUserSettings } from "@/hooks/use-settings";
-import { useQuery, useGenerateRecommendation } from "@/hooks/use-assessment";
+import {
+  useQuery,
+  useGenerateRecommendation,
+  useGenerateFix,
+  useEvaluate,
+  useStoreResults,
+} from "@/hooks/use-assessment";
 import { FullScreenLoader } from "@/components/ui/full-screen-loader";
 import { AssessmentAPI } from "@/lib/api/assessment";
+import { useRouter } from "next/navigation";
 
 const schema = yup.object({
   cweId: yup
@@ -18,26 +25,32 @@ const schema = yup.object({
     .string()
     .required("CVE ID is required")
     .matches(/^\d+-\d+$/, "CVE ID must be two numbers separated by a hyphen"),
-  codeSnippet: yup
-    .string()
-    .required("Code snippet is required")
+  codeSnippet: yup.string().required("Code snippet is required"),
 });
 
 export default function NewAssessment() {
   const { data: userSettings } = useUserSettings();
   const queryMutation = useQuery();
   const generateRecommendationMutation = useGenerateRecommendation();
+  const generateFixMutation = useGenerateFix();
+  const evaluateMutation = useEvaluate();
+  const storeResultsMutation = useStoreResults();
+  const router = useRouter();
 
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
   } = useForm({
-    resolver: yupResolver(schema)
+    resolver: yupResolver(schema),
   });
 
-  const onSubmit = async (data: { cweId: string; cveId: string; codeSnippet: string }) => {
+  const onSubmit = async (data: {
+    cweId: string;
+    cveId: string;
+    codeSnippet: string;
+  }) => {
     if (!userSettings) {
       console.error("User settings not available");
       return;
@@ -53,12 +66,11 @@ export default function NewAssessment() {
         cwe_id: cweId,
         cve_id: cveId,
         additional_params: {
-          top_k: userSettings.retrievalK
-        }
+          top_k: userSettings.retrievalK,
+        },
       };
 
       const queryResult = await queryMutation.mutateAsync(queryData);
-      console.log("Query result:", queryResult);
 
       // Step 2: Generate recommendation using the retrieved context
       const recommendationData = {
@@ -67,12 +79,51 @@ export default function NewAssessment() {
         vulnerable_code: data.codeSnippet,
         cwe_id: cweId,
         cve_id: cveId,
-        retrieved_context: queryResult.results.formatted_results || ""
+        retrieved_context: queryResult.results.formatted_results || "",
       };
 
-      const recommendationResult = await generateRecommendationMutation.mutateAsync(recommendationData);
-      console.log("Recommendation result:", recommendationResult);
+      const recommendationResult =
+        await generateRecommendationMutation.mutateAsync(recommendationData);
 
+      // Step 3: Generate fix using the recommendation
+      const fixData = {
+        model_type: AssessmentAPI.getModelType(userSettings.model_id),
+        model_id: userSettings.model_id,
+        vulnerable_code: data.codeSnippet,
+        cwe_id: cweId,
+        cve_id: cveId,
+        recommendation: recommendationResult.recommendation,
+      };
+
+      const fixResult = await generateFixMutation.mutateAsync(fixData);
+
+      // Step 4: Evaluate the assessment
+      const evaluateData = {
+        vulnerable_code: data.codeSnippet,
+        cwe_id: cweId,
+        cve_id: cveId,
+        recommendation: recommendationResult.recommendation,
+        retrieved_context: queryResult.results.formatted_results || "",
+        model: "gpt-4o-mini",
+      };
+
+      const evaluateResult = await evaluateMutation.mutateAsync(evaluateData);
+
+      // Step 5: Store the results
+      const storeData = {
+        scores: evaluateResult.scores,
+        recommendation: recommendationResult.recommendation,
+        vulnerable_code: data.codeSnippet,
+        fixed_code: fixResult.fixed_code,
+        cwe_id: cweId,
+        cve_id: cveId,
+        model_id: userSettings.model_id,
+      };
+
+      const storeResult = await storeResultsMutation.mutateAsync(storeData);
+
+      // Redirect to the repair detail page
+      router.push(`/dashboard/repair/${storeResult.assessment_id}`);
     } catch (error) {
       console.error("Assessment workflow failed:", error);
     }
@@ -84,26 +135,42 @@ export default function NewAssessment() {
 
   // Show loading screen with appropriate message
   if (queryMutation.isPending) {
-    return <FullScreenLoader text="Querying database for CWE..." />;
+    return <FullScreenLoader text="Querying database for CWE and CVE..." />;
   }
 
   if (generateRecommendationMutation.isPending) {
-    return <FullScreenLoader text="Generating recommendations..." />;
+    return (
+      <FullScreenLoader text="Generating recommendations for vulnerable code..." />
+    );
+  }
+
+  if (generateFixMutation.isPending) {
+    return <FullScreenLoader text="Generating code fix..." />;
+  }
+
+  if (evaluateMutation.isPending) {
+    return <FullScreenLoader text="Evaluating repair recommendations..." />;
+  }
+
+  if (storeResultsMutation.isPending) {
+    return <FullScreenLoader text="Finalizing results..." />;
   }
 
   return (
     <div className="max-w-3xl mx-auto mt-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-3">
-          New Repair
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-3">New Repair</h1>
         <p className="text-md text-gray-600 leading-7">
           Provide a CWE ID, CVE ID, and code snippet to generate an automated
           repair assessment based on our knowledge base data.
         </p>
       </div>
 
-      <form id="assessment-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        id="assessment-form"
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-6"
+      >
         {/* CWE ID Field */}
         <div>
           <label
@@ -127,7 +194,9 @@ export default function NewAssessment() {
             </div>
             <div className="h-5">
               {errors.cweId && (
-                <p className="text-sm text-red-600 mt-1">{errors.cweId.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.cweId.message}
+                </p>
               )}
             </div>
           </div>
@@ -156,7 +225,9 @@ export default function NewAssessment() {
             </div>
             <div className="h-5">
               {errors.cveId && (
-                <p className="text-sm text-red-600 mt-1">{errors.cveId.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.cveId.message}
+                </p>
               )}
             </div>
           </div>
@@ -180,7 +251,9 @@ export default function NewAssessment() {
             />
             <div className="h-5">
               {errors.codeSnippet && (
-                <p className="text-sm text-red-600 mt-1">{errors.codeSnippet.message}</p>
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.codeSnippet.message}
+                </p>
               )}
             </div>
           </div>
