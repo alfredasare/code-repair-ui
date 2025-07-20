@@ -176,8 +176,8 @@ export default function Settings() {
             control={control}
             render={({ field }) => (
               <Select
-                key={`model-${formDefaults.llmModel}`}
-                value={field.value}
+                key={`model-${userSettings?.model_id || 'default'}-${field.value}`}
+                value={field.value || ""}
                 onValueChange={field.onChange}
               >
                 <SelectTrigger className="w-full cursor-pointer focus-visible:ring-1">
