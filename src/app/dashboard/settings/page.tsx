@@ -12,39 +12,17 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import {
+  useModels,
+  usePatterns,
+  useUserSettings,
+  useCreateUserSettings,
+  useUpdateUserSettings,
+} from "@/hooks/use-settings";
+import { Spinner } from "@/components/ui/spinner";
+import React from "react";
 
-const llmModels = [
-  { value: "gpt-4o", label: "GPT-4o" },
-  { value: "deepseek", label: "Deepseek" },
-  { value: "claude-3-sonnet", label: "Claude 3 Sonnet" },
-  { value: "gemini-pro", label: "Gemini Pro" },
-];
-
-const patterns = [
-  {
-    id: "knn",
-    name: "KNN",
-    description:
-      "K-nearest neighbors similarity matching for code repair patterns",
-  },
-  {
-    id: "metapath",
-    name: "MetaPath",
-    description:
-      "Graph-based semantic path analysis for vulnerability detection",
-  },
-  {
-    id: "pagerank",
-    name: "PageRank",
-    description: "Ranking algorithm for prioritizing repair recommendations",
-  },
-];
-
-const defaultValues = {
-  llmModel: "gpt-4o",
-  pattern: "knn",
-  retrievalK: 5,
-};
+// We'll set defaults dynamically when data loads
 
 const schema = yup.object({
   llmModel: yup.string().required("LLM Model is required"),
@@ -70,6 +48,41 @@ const schema = yup.object({
 
 export default function Settings() {
   const {
+    data: modelsData,
+    isLoading: modelsLoading,
+    error: modelsError,
+  } = useModels();
+  const {
+    data: patternsData,
+    isLoading: patternsLoading,
+    error: patternsError,
+  } = usePatterns();
+  const {
+    data: userSettings,
+    isLoading: userSettingsLoading,
+    error: userSettingsError,
+  } = useUserSettings();
+
+  const createUserSettings = useCreateUserSettings();
+  const updateUserSettings = useUpdateUserSettings();
+
+  // Calculate form defaults
+  const formDefaults = React.useMemo(() => {
+    if (modelsData?.models.length && patternsData?.patterns.length) {
+      return {
+        llmModel: userSettings?.model_id || modelsData.models[0].model_id,
+        pattern: userSettings?.pattern_id || patternsData.patterns[0].pattern_id,
+        retrievalK: userSettings?.retrievalK || 5,
+      };
+    }
+    return {
+      llmModel: "",
+      pattern: "",
+      retrievalK: 5,
+    };
+  }, [modelsData, patternsData, userSettings]);
+
+  const {
     register,
     handleSubmit,
     reset,
@@ -77,20 +90,73 @@ export default function Settings() {
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
-    defaultValues,
+    defaultValues: formDefaults,
   });
 
-  const onSubmit = (data: {
+  // Reset form when defaults change
+  React.useEffect(() => {
+    if (formDefaults.llmModel && formDefaults.pattern) {
+      reset(formDefaults);
+    }
+  }, [formDefaults, reset]);
+
+  const onSubmit = async (data: {
     llmModel: string;
     pattern: string;
     retrievalK: number;
   }) => {
-    console.log(data);
+    const settingsData = {
+      model_id: data.llmModel,
+      pattern_id: data.pattern,
+      retrievalK: data.retrievalK,
+    };
+
+    try {
+      if (userSettings) {
+        // User has existing settings, update them
+        await updateUserSettings.mutateAsync(settingsData);
+      } else {
+        // No existing settings, create new ones
+        await createUserSettings.mutateAsync(settingsData);
+      }
+    } catch (error) {
+      console.error("Failed to save settings:", error);
+    }
   };
 
   const handleReset = () => {
-    reset(defaultValues);
+    // Reset to first available options or defaults
+    const resetValues = {
+      llmModel: modelsData?.models[0]?.model_id || "",
+      pattern: patternsData?.patterns[0]?.pattern_id || "",
+      retrievalK: 5,
+    };
+    reset(resetValues);
   };
+
+  // Show loading state while fetching data
+  if (modelsLoading || patternsLoading || userSettingsLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-white min-h-screen">
+        <Spinner size="lg" color="black" />
+      </div>
+    );
+  }
+
+  // Show error state if critical requests failed (ignore user settings 404)
+  if (modelsError || patternsError) {
+    return (
+      <div className="max-w-3xl mx-auto mt-10">
+        <div className="rounded-md bg-red-50 p-4">
+          <p className="text-sm text-red-800">
+            Failed to load settings data. Please try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const isSaving = createUserSettings.isPending || updateUserSettings.isPending;
 
   return (
     <div className="max-w-3xl mx-auto mt-10">
@@ -111,18 +177,18 @@ export default function Settings() {
             name="llmModel"
             control={control}
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger className="w-full z-10 cursor-pointer">
+              <Select key={`model-${formDefaults.llmModel}`} value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger className="w-full cursor-pointer focus-visible:ring-1">
                   <SelectValue placeholder="Select a model" />
                 </SelectTrigger>
                 <SelectContent className="bg-white cursor-pointer">
-                  {llmModels.map((model) => (
+                  {modelsData?.models.map((model) => (
                     <SelectItem
-                      key={model.value}
-                      value={model.value}
+                      key={model.id}
+                      value={model.model_id}
                       className="cursor-pointer"
                     >
-                      {model.label}
+                      {model.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -145,7 +211,7 @@ export default function Settings() {
               Pattern
             </legend>
             <div className="space-y-4">
-              {patterns.map((pattern) => (
+              {patternsData?.patterns.map((pattern) => (
                 <label
                   key={pattern.id}
                   aria-label={pattern.name}
@@ -153,7 +219,7 @@ export default function Settings() {
                   className="group relative block rounded-lg border border-gray-300 bg-white px-6 py-4 has-checked:outline-2 has-checked:-outline-offset-2 has-checked:outline-black has-focus-visible:outline-3 has-focus-visible:-outline-offset-1 sm:flex sm:justify-between cursor-pointer"
                 >
                   <input
-                    value={pattern.id}
+                    value={pattern.pattern_id}
                     {...register("pattern")}
                     type="radio"
                     className="absolute inset-0 appearance-none focus:outline-none cursor-pointer"
@@ -197,7 +263,7 @@ export default function Settings() {
             min={1}
             max={10}
             {...register("retrievalK", { valueAsNumber: true })}
-            className="w-full"
+            className="w-full focus-visible:ring-1"
           />
           <div className="h-5">
             {errors.retrievalK && (
@@ -212,9 +278,12 @@ export default function Settings() {
         <div className="flex gap-3 pt-4">
           <Button
             type="submit"
-            className="bg-black text-white hover:bg-gray-800 focus:ring-black cursor-pointer"
+            disabled={isSaving}
+            className={`bg-black text-white focus:ring-black cursor-pointer ${
+              isSaving ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800"
+            }`}
           >
-            Save Settings
+            {isSaving ? <Spinner size="sm" color="white" /> : "Save Settings"}
           </Button>
           <Button
             type="button"
