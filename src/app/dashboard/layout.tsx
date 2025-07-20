@@ -30,8 +30,27 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { NavUser } from "@/components/nav-user";
 import { useAuthStore } from "@/lib/auth/auth-store";
-import { useAssessments } from "@/hooks/use-assessment";
+import { useAssessments, useDeleteAssessment } from "@/hooks/use-assessment";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Trash2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const menuItems = [
   {
@@ -46,7 +65,6 @@ const menuItems = [
   },
 ];
 
-
 export default function DashboardLayout({
   children,
 }: {
@@ -54,7 +72,60 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const { user } = useAuthStore();
-  const { data: assessments, isLoading: assessmentsLoading, error: assessmentsError } = useAssessments();
+  const {
+    data: assessments,
+    isLoading: assessmentsLoading,
+    error: assessmentsError,
+  } = useAssessments();
+  const deleteAssessment = useDeleteAssessment();
+  const queryClient = useQueryClient();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [assessmentToDelete, setAssessmentToDelete] = useState<string | null>(
+    null
+  );
+
+  const handleDeleteClick = (assessmentId: string) => {
+    setAssessmentToDelete(assessmentId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!assessmentToDelete) return;
+
+    try {
+      await deleteAssessment.mutateAsync(assessmentToDelete);
+
+      // Invalidate assessments list to refresh sidebar
+      queryClient.invalidateQueries({ queryKey: ["assessments"] });
+
+      // Show success toast
+      toast("Repair deleted successfully", {
+        description: "The assessment has been removed from your list.",
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(),
+        },
+      });
+
+      // Close dialog
+      setDeleteDialogOpen(false);
+      setAssessmentToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete assessment:", error);
+      toast("Failed to delete repair", {
+        description: "Please try again later.",
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(),
+        },
+      });
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setAssessmentToDelete(null);
+  };
 
   // Generate breadcrumbs based on current path
   const getBreadcrumbs = () => {
@@ -80,11 +151,13 @@ export default function DashboardLayout({
     if (repairMatch) {
       const assessmentId = repairMatch[1];
       // Find the assessment to get display name
-      const assessment = assessments?.assessments.find(a => a.id === assessmentId);
-      const displayName = assessment 
+      const assessment = assessments?.assessments.find(
+        (a) => a.id === assessmentId
+      );
+      const displayName = assessment
         ? `${assessment.cwe_id}-${assessment.cve_id}-${assessment.model_id}`
         : `Assessment ${assessmentId}`;
-      
+
       return (
         <Breadcrumb>
           <BreadcrumbList>
@@ -180,29 +253,71 @@ export default function DashboardLayout({
                     <div className="text-gray-400 text-sm px-2 py-4">
                       Failed to load repairs
                     </div>
-                  ) : !assessments?.assessments || assessments.assessments.length === 0 ? (
+                  ) : !assessments?.assessments ||
+                    assessments.assessments.length === 0 ? (
                     <div className="text-gray-400 text-sm px-2 py-4">
                       No repairs yet
                     </div>
                   ) : (
                     <SidebarMenu>
                       {assessments.assessments
-                        .sort((a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime())
+                        .sort(
+                          (a, b) =>
+                            new Date(b.date_created).getTime() -
+                            new Date(a.date_created).getTime()
+                        )
                         .map((assessment) => {
                           const displayName = `${assessment.cwe_id}-${assessment.cve_id}-${assessment.model_id}`;
                           const url = `/dashboard/repair/${assessment.id}`;
-                          
+
                           return (
                             <SidebarMenuItem key={assessment.id}>
-                              <SidebarMenuButton
-                                asChild
-                                isActive={pathname === url}
-                                className="text-white hover:bg-gray-800 data-[active=true]:bg-gray-800 data-[active=true]:text-white"
-                              >
-                                <Link href={url}>
-                                  <span className="truncate">{displayName}</span>
-                                </Link>
-                              </SidebarMenuButton>
+                              <div className="flex items-center w-full relative hover:bg-gray-800 rounded-md transition-colors [&:hover_button]:opacity-100">
+                                <SidebarMenuButton
+                                  asChild
+                                  isActive={pathname === url}
+                                  className="text-white data-[active=true]:bg-gray-800 data-[active=true]:text-white flex-1 pr-8 hover:bg-transparent"
+                                >
+                                  <Link href={url}>
+                                    <span className="truncate">
+                                      {displayName}
+                                    </span>
+                                  </Link>
+                                </SidebarMenuButton>
+
+                                {/* Three dots menu - positioned absolutely */}
+                                <div className="absolute right-1 top-1/2 transform -translate-y-1/2">
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="opacity-0 transition-opacity text-white hover:bg-gray-700 h-6 w-6 p-0 cursor-pointer"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <MoreHorizontal className="h-3 w-3" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                      align="end"
+                                      side="right"
+                                      alignOffset={-10}
+                                      sideOffset={5}
+                                      className="w-40 bg-black border border-gray-800 shadow-lg"
+                                    >
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          handleDeleteClick(assessment.id)
+                                        }
+                                        className="text-white hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </div>
                             </SidebarMenuItem>
                           );
                         })}
@@ -235,6 +350,42 @@ export default function DashboardLayout({
           <div className="flex-1 p-6">{children}</div>
         </SidebarInset>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="bg-black border-gray-800 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-white">Delete Repair</DialogTitle>
+            <DialogDescription className="text-gray-300">
+              Are you sure you want to delete this repair assessment? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleDeleteCancel}
+              className="border-gray-800 text-white hover:bg-gray-800 cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteConfirm}
+              disabled={deleteAssessment.isPending}
+              className="bg-red-600 hover:bg-red-700 text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {deleteAssessment.isPending ? (
+                <>
+                  <Spinner size="sm" color="white" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }

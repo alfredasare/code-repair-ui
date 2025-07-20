@@ -232,6 +232,20 @@ export class AssessmentAPI {
     return response.json();
   }
 
+  static async deleteAssessment(token: string, assessmentId: string): Promise<void> {
+    const response = await fetch(`${BACKEND_URL}/api/v1/assessments/${assessmentId}`, {
+      method: 'DELETE',
+      headers: {
+        'accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete assessment');
+    }
+  }
+
   // Helper function to determine model type
   static getModelType(modelId: string): "openai" | "groq" {
     return modelId.toLowerCase().includes('gpt') ? 'openai' : 'groq';

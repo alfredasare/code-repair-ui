@@ -96,3 +96,16 @@ export function useAssessment(assessmentId: string) {
     enabled: !!token && !!assessmentId,
   });
 }
+
+export function useDeleteAssessment() {
+  const { token } = useAuthStore();
+
+  return useMutation({
+    mutationFn: (assessmentId: string) => {
+      if (!token) {
+        throw new Error('No authentication token');
+      }
+      return AssessmentAPI.deleteAssessment(token, assessmentId);
+    },
+  });
+}
