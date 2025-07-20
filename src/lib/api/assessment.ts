@@ -78,6 +78,25 @@ export interface StoreResultsResponse {
   stored_at: string;
 }
 
+// Assessment list types
+export interface Assessment {
+  id: string;
+  user_id: string;
+  evaluation_scores: Record<string, number>;
+  recommendation: string;
+  vulnerable_code: string;
+  fixed_code: string;
+  cwe_id: string;
+  cve_id: string;
+  model_id: string;
+  date_created: string;
+  date_modified: string;
+}
+
+export interface AssessmentsListResponse {
+  assessments: Assessment[];
+}
+
 export class AssessmentAPI {
   static async query(token: string, request: QueryRequest): Promise<QueryResponse> {
     const response = await fetch(`${BACKEND_URL}/api/v1/query/`, {
@@ -176,6 +195,38 @@ export class AssessmentAPI {
 
     if (!response.ok) {
       throw new Error('Failed to store results');
+    }
+
+    return response.json();
+  }
+
+  static async getAssessments(token: string): Promise<AssessmentsListResponse> {
+    const response = await fetch(`${BACKEND_URL}/api/v1/assessments/`, {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch assessments');
+    }
+
+    return response.json();
+  }
+
+  static async getAssessment(token: string, assessmentId: string): Promise<Assessment> {
+    const response = await fetch(`${BACKEND_URL}/api/v1/assessments/${assessmentId}`, {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch assessment details');
     }
 
     return response.json();

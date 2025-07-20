@@ -30,6 +30,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { NavUser } from "@/components/nav-user";
 import { useAuthStore } from "@/lib/auth/auth-store";
+import { useAssessments } from "@/hooks/use-assessment";
+import { Spinner } from "@/components/ui/spinner";
 
 const menuItems = [
   {
@@ -44,13 +46,6 @@ const menuItems = [
   },
 ];
 
-// Generate dummy repair data for testing
-const repairItems = Array.from({ length: 30 }, (_, i) => ({
-  id: `repair-${i + 1}`,
-  title: `Repair ${i + 1}`,
-  url: `/dashboard/repair/${i + 1}`,
-  date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000), // Random date within last 30 days
-}));
 
 export default function DashboardLayout({
   children,
@@ -59,6 +54,7 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const { user } = useAuthStore();
+  const { data: assessments, isLoading: assessmentsLoading, error: assessmentsError } = useAssessments();
 
   // Generate breadcrumbs based on current path
   const getBreadcrumbs = () => {
@@ -80,9 +76,15 @@ export default function DashboardLayout({
     }
 
     // Check if it's a repair detail page
-    const repairMatch = pathname.match(/\/dashboard\/repair\/(\d+)/);
+    const repairMatch = pathname.match(/\/dashboard\/repair\/([^/]+)/);
     if (repairMatch) {
-      const repairNumber = repairMatch[1];
+      const assessmentId = repairMatch[1];
+      // Find the assessment to get display name
+      const assessment = assessments?.assessments.find(a => a.id === assessmentId);
+      const displayName = assessment 
+        ? `${assessment.cwe_id}-${assessment.cve_id}-${assessment.model_id}`
+        : `Assessment ${assessmentId}`;
+      
       return (
         <Breadcrumb>
           <BreadcrumbList>
@@ -91,7 +93,7 @@ export default function DashboardLayout({
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem>
-              <BreadcrumbPage>Repair {repairNumber}</BreadcrumbPage>
+              <BreadcrumbPage>{displayName}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -170,21 +172,40 @@ export default function DashboardLayout({
               </SidebarGroupLabel>
               <SidebarGroupContent className="flex-1 overflow-hidden">
                 <div className="overflow-y-auto h-full">
-                  <SidebarMenu>
-                    {repairItems.map((repair) => (
-                      <SidebarMenuItem key={repair.id}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={pathname === repair.url}
-                          className="text-white hover:bg-gray-800 data-[active=true]:bg-gray-800 data-[active=true]:text-white"
-                        >
-                          <Link href={repair.url}>
-                            <span className="truncate">{repair.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
+                  {assessmentsLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Spinner size="sm" color="white" />
+                    </div>
+                  ) : assessmentsError ? (
+                    <div className="text-gray-400 text-sm px-2 py-4">
+                      Failed to load repairs
+                    </div>
+                  ) : !assessments?.assessments || assessments.assessments.length === 0 ? (
+                    <div className="text-gray-400 text-sm px-2 py-4">
+                      No repairs yet
+                    </div>
+                  ) : (
+                    <SidebarMenu>
+                      {assessments.assessments.map((assessment) => {
+                        const displayName = `${assessment.cwe_id}-${assessment.cve_id}-${assessment.model_id}`;
+                        const url = `/dashboard/repair/${assessment.id}`;
+                        
+                        return (
+                          <SidebarMenuItem key={assessment.id}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={pathname === url}
+                              className="text-white hover:bg-gray-800 data-[active=true]:bg-gray-800 data-[active=true]:text-white"
+                            >
+                              <Link href={url}>
+                                <span className="truncate">{displayName}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        );
+                      })}
+                    </SidebarMenu>
+                  )}
                 </div>
               </SidebarGroupContent>
             </SidebarGroup>

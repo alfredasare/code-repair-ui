@@ -6,7 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useUserSettings } from "@/hooks/use-settings";
 import {
-  useQuery,
+  useQueryDatabase,
   useGenerateRecommendation,
   useGenerateFix,
   useEvaluate,
@@ -30,7 +30,7 @@ const schema = yup.object({
 
 export default function NewAssessment() {
   const { data: userSettings } = useUserSettings();
-  const queryMutation = useQuery();
+  const queryMutation = useQueryDatabase();
   const generateRecommendationMutation = useGenerateRecommendation();
   const generateFixMutation = useGenerateFix();
   const evaluateMutation = useEvaluate();

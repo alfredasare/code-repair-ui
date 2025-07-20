@@ -1,8 +1,8 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { AssessmentAPI, type QueryRequest, type GenerateRecommendationRequest, type GenerateFixRequest, type EvaluateRequest, type StoreResultsRequest } from '@/lib/api/assessment';
 import { useAuthStore } from '@/lib/auth/auth-store';
 
-export function useQuery() {
+export function useQueryDatabase() {
   const { token } = useAuthStore();
 
   return useMutation({
@@ -64,5 +64,35 @@ export function useStoreResults() {
       }
       return AssessmentAPI.storeResults(token, request);
     },
+  });
+}
+
+export function useAssessments() {
+  const { token } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['assessments'],
+    queryFn: () => {
+      if (!token) {
+        throw new Error('No authentication token');
+      }
+      return AssessmentAPI.getAssessments(token);
+    },
+    enabled: !!token,
+  });
+}
+
+export function useAssessment(assessmentId: string) {
+  const { token } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['assessment', assessmentId],
+    queryFn: () => {
+      if (!token) {
+        throw new Error('No authentication token');
+      }
+      return AssessmentAPI.getAssessment(token, assessmentId);
+    },
+    enabled: !!token && !!assessmentId,
   });
 }
