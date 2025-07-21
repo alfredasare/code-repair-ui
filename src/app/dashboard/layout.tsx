@@ -205,7 +205,7 @@ export default function DashboardLayout({
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">CodeRepair</span>
                     <span className="truncate text-xs text-gray-400">
-                      Assessment Tool
+                      Code Repair Tool
                     </span>
                   </div>
                 </SidebarMenuButton>
