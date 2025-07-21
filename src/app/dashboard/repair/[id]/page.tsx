@@ -174,7 +174,7 @@ export default function RepairDetail() {
 
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Recommendation
+          Recommendation for Repairing {assessment.cve_id}
         </h2>
         <div className="bg-white rounded-xl border border-gray-900/5 p-6">
           <div className="prose prose-gray max-w-none">
@@ -267,6 +267,7 @@ export default function RepairDetail() {
             leftTitle="Original Code"
             rightTitle="Repaired Code"
             useDarkTheme={true}
+            disableWordDiff={true}
             styles={{
               variables: {
                 light: {
@@ -276,8 +277,6 @@ export default function RepairDetail() {
                   addedColor: "#24292e",
                   removedBackground: "#ffeef0",
                   removedColor: "#24292e",
-                  wordAddedBackground: "#acf2bd",
-                  wordRemovedBackground: "#fdb8c0",
                   addedGutterBackground: "#cdffd8",
                   removedGutterBackground: "#fdbbc4",
                   gutterBackground: "#f6f8fa",
