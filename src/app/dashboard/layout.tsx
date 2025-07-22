@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, Settings, Plus } from "lucide-react";
+import { Settings, Plus } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -51,6 +51,7 @@ import { MoreHorizontal, Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useState } from "react";
+import Image from "next/image";
 
 const menuItems = [
   {
@@ -200,7 +201,13 @@ export default function DashboardLayout({
                   className="text-white hover:bg-gray-800"
                 >
                   <div className="bg-white text-black flex aspect-square size-8 items-center justify-center rounded-lg">
-                    <FileText className="size-4" />
+                    <Image
+                      alt="Code Repair"
+                      src="/bug.png"
+                      className="mx-auto size-6"
+                      width={100}
+                      height={100}
+                    />
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">CodeRepair</span>

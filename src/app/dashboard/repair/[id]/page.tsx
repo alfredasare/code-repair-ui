@@ -145,6 +145,14 @@ export default function RepairDetail() {
         Repair for {assessment.cve_id}
       </h1>
 
+      <p className="text-gray-500">
+        The following is a repair recommendation for{" "}
+        <span className="font-bold">
+          {assessment.cve_id} ({assessment.cwe_id}){" "}
+        </span>{" "}
+        generated using{" "}
+        <span className="font-bold capitalize">{assessment.model_id}</span>.
+      </p>
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
           Evaluation Results
