@@ -5,12 +5,12 @@ export interface QueryRequest {
   pattern_id: string;
   cwe_id: string;
   cve_id: string;
-  additional_params?: Record<string, any>;
+  additional_params?: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export interface QueryResponse {
   pattern_id: string;
-  results: Record<string, any>;
+  results: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   message: string;
 }
 
@@ -62,7 +62,7 @@ export interface EvaluateResponse {
 
 // Store results types
 export interface StoreResultsRequest {
-  scores: Record<string, any>;
+  scores: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   recommendation: string;
   vulnerable_code: string;
   fixed_code: string;
@@ -98,19 +98,22 @@ export interface AssessmentsListResponse {
 }
 
 export class AssessmentAPI {
-  static async query(token: string, request: QueryRequest): Promise<QueryResponse> {
+  static async query(
+    token: string,
+    request: QueryRequest
+  ): Promise<QueryResponse> {
     const response = await fetch(`${BACKEND_URL}/api/v1/query/`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(request),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to execute query');
+      throw new Error("Failed to execute query");
     }
 
     return response.json();
@@ -120,18 +123,21 @@ export class AssessmentAPI {
     token: string,
     request: GenerateRecommendationRequest
   ): Promise<GenerateRecommendationResponse> {
-    const response = await fetch(`${BACKEND_URL}/api/v1/assessments/generate-recommendation`, {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(request),
-    });
+    const response = await fetch(
+      `${BACKEND_URL}/api/v1/assessments/generate-recommendation`,
+      {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(request),
+      }
+    );
 
     if (!response.ok) {
-      throw new Error('Failed to generate recommendation');
+      throw new Error("Failed to generate recommendation");
     }
 
     return response.json();
@@ -141,18 +147,21 @@ export class AssessmentAPI {
     token: string,
     request: GenerateFixRequest
   ): Promise<GenerateFixResponse> {
-    const response = await fetch(`${BACKEND_URL}/api/v1/assessments/generate-fix`, {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(request),
-    });
+    const response = await fetch(
+      `${BACKEND_URL}/api/v1/assessments/generate-fix`,
+      {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(request),
+      }
+    );
 
     if (!response.ok) {
-      throw new Error('Failed to generate fix');
+      throw new Error("Failed to generate fix");
     }
 
     return response.json();
@@ -163,17 +172,17 @@ export class AssessmentAPI {
     request: EvaluateRequest
   ): Promise<EvaluateResponse> {
     const response = await fetch(`${BACKEND_URL}/api/v1/assessments/evaluate`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(request),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to evaluate assessment');
+      throw new Error("Failed to evaluate assessment");
     }
 
     return response.json();
@@ -183,18 +192,21 @@ export class AssessmentAPI {
     token: string,
     request: StoreResultsRequest
   ): Promise<StoreResultsResponse> {
-    const response = await fetch(`${BACKEND_URL}/api/v1/assessments/store-results`, {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(request),
-    });
+    const response = await fetch(
+      `${BACKEND_URL}/api/v1/assessments/store-results`,
+      {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(request),
+      }
+    );
 
     if (!response.ok) {
-      throw new Error('Failed to store results');
+      throw new Error("Failed to store results");
     }
 
     return response.json();
@@ -202,52 +214,64 @@ export class AssessmentAPI {
 
   static async getAssessments(token: string): Promise<AssessmentsListResponse> {
     const response = await fetch(`${BACKEND_URL}/api/v1/assessments/`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        accept: "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch assessments');
+      throw new Error("Failed to fetch assessments");
     }
 
     return response.json();
   }
 
-  static async getAssessment(token: string, assessmentId: string): Promise<Assessment> {
-    const response = await fetch(`${BACKEND_URL}/api/v1/assessments/${assessmentId}`, {
-      method: 'GET',
-      headers: {
-        'accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+  static async getAssessment(
+    token: string,
+    assessmentId: string
+  ): Promise<Assessment> {
+    const response = await fetch(
+      `${BACKEND_URL}/api/v1/assessments/${assessmentId}`,
+      {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     if (!response.ok) {
-      throw new Error('Failed to fetch assessment details');
+      throw new Error("Failed to fetch assessment details");
     }
 
     return response.json();
   }
 
-  static async deleteAssessment(token: string, assessmentId: string): Promise<void> {
-    const response = await fetch(`${BACKEND_URL}/api/v1/assessments/${assessmentId}`, {
-      method: 'DELETE',
-      headers: {
-        'accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+  static async deleteAssessment(
+    token: string,
+    assessmentId: string
+  ): Promise<void> {
+    const response = await fetch(
+      `${BACKEND_URL}/api/v1/assessments/${assessmentId}`,
+      {
+        method: "DELETE",
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     if (!response.ok) {
-      throw new Error('Failed to delete assessment');
+      throw new Error("Failed to delete assessment");
     }
   }
 
   // Helper function to determine model type
   static getModelType(modelId: string): "openai" | "groq" {
-    return modelId.toLowerCase().includes('gpt') ? 'openai' : 'groq';
+    return modelId.toLowerCase().includes("gpt") ? "openai" : "groq";
   }
 }
