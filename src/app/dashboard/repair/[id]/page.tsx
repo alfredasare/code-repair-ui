@@ -226,12 +226,12 @@ export default function RepairDetail() {
                   </pre>
                 ),
                 ul: ({ children }) => (
-                  <ul className="list-disc list-inside text-gray-700 mb-4 space-y-1">
+                  <ul className="list-disc list-outside text-gray-700 mb-4 space-y-1 pl-6">
                     {children}
                   </ul>
                 ),
                 ol: ({ children }) => (
-                  <ol className="list-decimal list-inside text-gray-700 mb-4 space-y-1">
+                  <ol className="list-decimal list-outside text-gray-700 mb-4 space-y-1 pl-6">
                     {children}
                   </ol>
                 ),
