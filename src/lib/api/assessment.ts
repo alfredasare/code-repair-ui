@@ -69,6 +69,7 @@ export interface StoreResultsRequest {
   cwe_id: string;
   cve_id: string;
   model_id: string;
+  pattern_id: string;
 }
 
 export interface StoreResultsResponse {
@@ -89,6 +90,7 @@ export interface Assessment {
   cwe_id: string;
   cve_id: string;
   model_id: string;
+  pattern_id: string;
   date_created: string;
   date_modified: string;
 }

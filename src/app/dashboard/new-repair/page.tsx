@@ -121,6 +121,7 @@ export default function NewAssessment() {
         cwe_id: cweId,
         cve_id: cveId,
         model_id: userSettings.model_id,
+        pattern_id: userSettings.pattern_id,
       };
 
       const storeResult = await storeResultsMutation.mutateAsync(storeData);

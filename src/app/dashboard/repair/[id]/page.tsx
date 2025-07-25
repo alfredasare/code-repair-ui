@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAssessment } from "@/hooks/use-assessment";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 // Dynamically import ReactDiffViewer to avoid SSR issues
 const ReactDiffViewer = dynamic(() => import("react-diff-viewer"), {
@@ -113,6 +114,11 @@ export default function RepairDetail() {
   }
 
   // Transform evaluation scores to match the expected format
+  // Helper function to get pattern_id without underscore part
+  const getPatternIdBase = (patternId: string) => {
+    return patternId.split("_")[0];
+  };
+
   const evaluationMetrics = [
     {
       name: "Relevance",
@@ -140,19 +146,27 @@ export default function RepairDetail() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-7xl 2xl:max-w-8xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-900">
         Repair for {assessment.cve_id}
       </h1>
 
-      <p className="text-gray-500">
-        The following is a repair recommendation for{" "}
-        <span className="font-bold">
-          {assessment.cve_id} ({assessment.cwe_id}){" "}
-        </span>{" "}
-        generated using{" "}
-        <span className="font-bold capitalize">{assessment.model_id}</span>.
-      </p>
+      <div className="flex flex-wrap gap-2">
+        <Badge className="bg-black text-white hover:bg-gray-800 font-bold px-3 py-1.5 rounded-3xl">
+          {assessment.cve_id.toUpperCase()}
+        </Badge>
+        <Badge className="bg-black text-white hover:bg-gray-800 font-bold px-3 py-1.5 rounded-3xl">
+          {assessment.cwe_id.toUpperCase()}
+        </Badge>
+        <Badge className="bg-black text-white hover:bg-gray-800 font-bold px-3 py-1.5 rounded-3xl">
+          {assessment.model_id.toUpperCase()}
+        </Badge>
+        {assessment.pattern_id && (
+          <Badge className="bg-black text-white hover:bg-gray-800 font-bold px-3 py-1.5 rounded-3xl">
+            {getPatternIdBase(assessment.pattern_id).toUpperCase()}
+          </Badge>
+        )}
+      </div>
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
           Evaluation Results
