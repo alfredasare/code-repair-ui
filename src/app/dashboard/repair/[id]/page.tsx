@@ -116,7 +116,8 @@ export default function RepairDetail() {
   // Transform evaluation scores to match the expected format
   // Helper function to get pattern_id without underscore part
   const getPatternIdBase = (patternId: string) => {
-    return patternId.split("_")[0];
+    const parts = patternId.split("_");
+    return parts.slice(0, -1).join("_");
   };
 
   const evaluationMetrics = [
