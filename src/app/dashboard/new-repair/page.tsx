@@ -127,11 +127,12 @@ export default function NewAssessment() {
       const storeResult = await storeResultsMutation.mutateAsync(storeData);
 
       // Invalidate assessments list to show the new assessment in sidebar
-      queryClient.invalidateQueries({ queryKey: ['assessments'] });
+      queryClient.invalidateQueries({ queryKey: ["assessments"] });
 
       // Show success toast
       toast("Repair successfully created", {
-        description: "Your code repair assessment has been generated and saved.",
+        description:
+          "Your code repair evaluation has been generated and saved.",
         action: {
           label: "Close",
           onClick: () => toast.dismiss(),
@@ -141,7 +142,7 @@ export default function NewAssessment() {
       // Redirect to the repair detail page
       router.push(`/dashboard/repair/${storeResult.assessment_id}`);
     } catch (error) {
-      console.error("Assessment workflow failed:", error);
+      console.error("Repair workflow failed:", error);
     }
   };
 
@@ -178,7 +179,7 @@ export default function NewAssessment() {
         <h1 className="text-3xl font-bold text-gray-900 mb-3">New Repair</h1>
         <p className="text-md text-gray-600 leading-7">
           Provide a CWE ID, CVE ID, and code snippet to generate an automated
-          repair assessment based on our knowledge base data.
+          repair evaluation based on our knowledge base data.
         </p>
       </div>
 
@@ -281,7 +282,7 @@ export default function NewAssessment() {
             type="submit"
             className="bg-black text-white hover:bg-gray-800 focus:ring-black cursor-pointer"
           >
-            Submit Assessment
+            Submit Vulnerability
           </Button>
           <Button
             type="button"
