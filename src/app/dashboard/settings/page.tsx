@@ -175,10 +175,10 @@ export default function Settings() {
   const isSaving = createUserSettings.isPending || updateUserSettings.isPending;
 
   return (
-    <div className="max-w-3xl mx-auto mt-10">
+    <div className="max-w-4xl mx-auto mt-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-3">Settings</h1>
-        <p className="text-md text-gray-600 leading-7">
+        <h1 className="text-4xl font-bold text-gray-900 mb-3">Settings</h1>
+        <p className="text-lg text-gray-600 leading-7">
           Configure your repair assessment preferences and model settings.
         </p>
       </div>
@@ -186,7 +186,7 @@ export default function Settings() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* LLM Model Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-3 cursor-pointer">
+          <label className="block text-lg font-medium text-gray-900 mb-3 cursor-pointer">
             LLM Model
           </label>
           <Controller
@@ -200,15 +200,15 @@ export default function Settings() {
                 value={field.value || ""}
                 onValueChange={field.onChange}
               >
-                <SelectTrigger className="w-full cursor-pointer focus-visible:ring-1">
+                <SelectTrigger className="w-full cursor-pointer focus-visible:ring-1 text-lg py-6 px-4">
                   <SelectValue placeholder="Select a model" />
                 </SelectTrigger>
-                <SelectContent className="bg-white cursor-pointer">
+                <SelectContent className="bg-white cursor-pointer text-lg">
                   {modelsData?.models.map((model) => (
                     <SelectItem
                       key={model.id}
                       value={model.model_id}
-                      className="cursor-pointer"
+                      className="cursor-pointer text-lg"
                     >
                       {model.name}
                     </SelectItem>
@@ -229,7 +229,7 @@ export default function Settings() {
         {/* Pattern Selection */}
         <div>
           <fieldset aria-label="Pattern selection">
-            <legend className="block text-sm font-medium text-gray-900 mb-3">
+            <legend className="block text-lg font-medium text-gray-900 mb-3">
               Pattern
             </legend>
             <div className="space-y-4">
@@ -247,7 +247,7 @@ export default function Settings() {
                     className="absolute inset-0 appearance-none focus:outline-none cursor-pointer"
                   />
                   <span className="flex items-center">
-                    <span className="flex flex-col text-sm">
+                    <span className="flex flex-col text-lg">
                       <span className="font-medium text-gray-900">
                         {pattern.name}
                       </span>
@@ -275,7 +275,7 @@ export default function Settings() {
         <div>
           <label
             htmlFor="retrieval-k"
-            className="block text-sm font-medium text-gray-900 mb-3"
+            className="block text-lg font-medium text-gray-900 mb-3"
           >
             Retrieval top-K
           </label>
@@ -285,7 +285,7 @@ export default function Settings() {
             min={1}
             max={10}
             {...register("retrievalK", { valueAsNumber: true })}
-            className="w-full focus-visible:ring-1"
+            className="w-full focus-visible:ring-1 text-lg py-6 px-4"
           />
           <div className="h-5">
             {errors.retrievalK && (
@@ -301,7 +301,7 @@ export default function Settings() {
           <Button
             type="submit"
             disabled={isSaving}
-            className={`bg-black text-white focus:ring-black cursor-pointer ${
+            className={`bg-black text-white focus:ring-black cursor-pointer text-lg py-6 px-6 ${
               isSaving ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800"
             }`}
           >
@@ -311,7 +311,7 @@ export default function Settings() {
             type="button"
             variant="outline"
             onClick={handleReset}
-            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
+            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer text-lg py-6 px-6"
           >
             Reset to Default
           </Button>

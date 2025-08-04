@@ -147,29 +147,30 @@ export default function RepairDetail() {
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl 2xl:max-w-8xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900">
+    <div className="space-y-8 max-w-8xl mx-auto">
+      <h1 className="text-4xl font-bold text-gray-900">
         Repair for {assessment.cve_id}
       </h1>
 
       <div className="flex flex-wrap gap-2">
-        <Badge className="bg-black text-white hover:bg-gray-800 font-bold px-3 py-1.5 rounded-3xl">
+        <Badge className="bg-black text-white text-sm hover:bg-gray-800 font-bold px-3 py-1.5 rounded-3xl">
           {assessment.cve_id.toUpperCase()}
         </Badge>
-        <Badge className="bg-black text-white hover:bg-gray-800 font-bold px-3 py-1.5 rounded-3xl">
+        <Badge className="bg-black text-white text-sm hover:bg-gray-800 font-bold px-3 py-1.5 rounded-3xl">
           {assessment.cwe_id.toUpperCase()}
         </Badge>
-        <Badge className="bg-black text-white hover:bg-gray-800 font-bold px-3 py-1.5 rounded-3xl">
+        <Badge className="bg-black text-white text-sm hover:bg-gray-800 font-bold px-3 py-1.5 rounded-3xl">
           {assessment.model_id.toUpperCase()}
         </Badge>
         {assessment.pattern_id && (
-          <Badge className="bg-black text-white hover:bg-gray-800 font-bold px-3 py-1.5 rounded-3xl">
+          <Badge className="bg-black text-white text-sm hover:bg-gray-800 font-bold px-3 py-1.5 rounded-3xl">
             {getPatternIdBase(assessment.pattern_id).toUpperCase()}
           </Badge>
         )}
       </div>
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+
+      <div className="pt-8">
+        <h2 className="text-3xl font-semibold text-gray-900 mb-4">
           Evaluation Results
         </h2>
         <dl className="mx-auto grid grid-cols-1 gap-px bg-gray-900/5 sm:grid-cols-2 lg:grid-cols-5 border border-gray-900/5 rounded-xl">
@@ -184,7 +185,7 @@ export default function RepairDetail() {
                   : ""
               }`}
             >
-              <dt className="text-sm/6 font-medium text-gray-500">
+              <dt className="text-md/6 font-medium text-gray-500">
                 {metric.name}
               </dt>
               <dd className="w-full flex-none text-3xl/10 font-medium tracking-tight text-gray-900">
@@ -196,7 +197,7 @@ export default function RepairDetail() {
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-3xl font-semibold text-gray-900 mb-4 pt-3">
           Recommendation for Repairing {assessment.cve_id}
         </h2>
         <div className="bg-white rounded-xl border border-gray-900/5 p-6">
@@ -277,7 +278,7 @@ export default function RepairDetail() {
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-3xl font-semibold text-gray-900 mb-4 pt-3">
           Repaired Code
         </h2>
         <div className="bg-white rounded-xl border border-gray-900/5 p-6">
