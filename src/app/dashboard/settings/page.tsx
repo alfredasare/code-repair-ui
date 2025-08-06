@@ -296,13 +296,11 @@ export default function Settings() {
                               <p>{pattern.name} details</p>
                             </TooltipContent>
                           </Tooltip>
-                          <SheetContent className="bg-white text-black p-6 min-w-[400px] sm:min-w-[700px]">
-                            <SheetHeader className="pb-4">
-                              <div className="flex items-center justify-between">
-                                <SheetTitle className="text-black">
-                                  {pattern.name} Details
-                                </SheetTitle>
-                              </div>
+                          <SheetContent className="bg-white text-black p-6 min-w-[400px] sm:min-w-[700px] overflow-y-auto">
+                            <SheetHeader>
+                              <SheetTitle className="text-black hidden">
+                                Pattern Details
+                              </SheetTitle>
                             </SheetHeader>
                             <div className="mt-6">
                               <div className="prose prose-gray max-w-none">
