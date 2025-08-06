@@ -9,6 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Tooltip,
   TooltipContent,
@@ -294,7 +296,7 @@ export default function Settings() {
                               <p>{pattern.name} details</p>
                             </TooltipContent>
                           </Tooltip>
-                          <SheetContent className="bg-white text-black p-6">
+                          <SheetContent className="bg-white text-black p-6 min-w-[400px] sm:min-w-[700px]">
                             <SheetHeader className="pb-4">
                               <div className="flex items-center justify-between">
                                 <SheetTitle className="text-black">
@@ -303,23 +305,82 @@ export default function Settings() {
                               </div>
                             </SheetHeader>
                             <div className="mt-6">
-                              <p className="text-black leading-relaxed">
-                                Lorem ipsum dolor sit amet, consectetur
-                                adipiscing elit. Sed do eiusmod tempor
-                                incididunt ut labore et dolore magna aliqua. Ut
-                                enim ad minim veniam, quis nostrud exercitation
-                                ullamco laboris nisi ut aliquip ex ea commodo
-                                consequat. Duis aute irure dolor in
-                                reprehenderit in voluptate velit esse cillum
-                                dolore eu fugiat nulla pariatur.
-                              </p>
-                              <p className="text-black leading-relaxed mt-4">
-                                Excepteur sint occaecat cupidatat non proident,
-                                sunt in culpa qui officia deserunt mollit anim
-                                id est laborum. Sed ut perspiciatis unde omnis
-                                iste natus error sit voluptatem accusantium
-                                doloremque laudantium.
-                              </p>
+                              <div className="prose prose-gray max-w-none">
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkGfm]}
+                                  components={{
+                                    h1: ({ children }) => (
+                                      <h1 className="text-2xl font-bold text-black mb-4">
+                                        {children}
+                                      </h1>
+                                    ),
+                                    h2: ({ children }) => (
+                                      <h2 className="text-xl font-semibold text-black mb-3">
+                                        {children}
+                                      </h2>
+                                    ),
+                                    h3: ({ children }) => (
+                                      <h3 className="text-lg font-medium text-black mb-2">
+                                        {children}
+                                      </h3>
+                                    ),
+                                    p: ({ children }) => (
+                                      <p className="text-black leading-relaxed mb-4">
+                                        {children}
+                                      </p>
+                                    ),
+                                    code: ({ children, className }) => {
+                                      return className?.includes(
+                                        "language-"
+                                      ) ? (
+                                        <code className="block bg-gray-100 rounded-md p-4 text-sm overflow-x-auto font-mono">
+                                          {children}
+                                        </code>
+                                      ) : (
+                                        <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">
+                                          {children}
+                                        </code>
+                                      );
+                                    },
+                                    pre: ({ children }) => (
+                                      <pre className="bg-gray-100 rounded-md overflow-x-auto mb-4">
+                                        {children}
+                                      </pre>
+                                    ),
+                                    ul: ({ children }) => (
+                                      <ul className="list-disc list-outside text-black mb-4 space-y-1 pl-6">
+                                        {children}
+                                      </ul>
+                                    ),
+                                    ol: ({ children }) => (
+                                      <ol className="list-decimal list-outside text-black mb-4 space-y-1 pl-6">
+                                        {children}
+                                      </ol>
+                                    ),
+                                    li: ({ children }) => (
+                                      <li className="text-black">{children}</li>
+                                    ),
+                                    blockquote: ({ children }) => (
+                                      <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-600 mb-4">
+                                        {children}
+                                      </blockquote>
+                                    ),
+                                    a: ({ href, children }) => (
+                                      <a
+                                        href={href}
+                                        className="text-blue-600 hover:text-blue-800 underline"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        {children}
+                                      </a>
+                                    ),
+                                  }}
+                                >
+                                  {pattern.full_description ||
+                                    pattern.description}
+                                </ReactMarkdown>
+                              </div>
                             </div>
                           </SheetContent>
                         </Sheet>
