@@ -19,6 +19,7 @@ export interface Pattern {
   name: string;
   pattern_id: string;
   description: string;
+  full_description?: string;
   date_created: string;
   date_modified: string;
 }
@@ -47,15 +48,15 @@ export interface UserSettings {
 export class SettingsAPI {
   static async getModels(token: string): Promise<ModelsResponse> {
     const response = await fetch(`${BACKEND_URL}/api/v1/models/`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        accept: "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch models');
+      throw new Error("Failed to fetch models");
     }
 
     return response.json();
@@ -63,15 +64,15 @@ export class SettingsAPI {
 
   static async getPatterns(token: string): Promise<PatternsResponse> {
     const response = await fetch(`${BACKEND_URL}/api/v1/patterns/`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        accept: "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch patterns');
+      throw new Error("Failed to fetch patterns");
     }
 
     return response.json();
@@ -79,55 +80,61 @@ export class SettingsAPI {
 
   static async getUserSettings(token: string): Promise<UserSettings> {
     const response = await fetch(`${BACKEND_URL}/api/v1/settings/`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        accept: "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
     if (!response.ok) {
       if (response.status === 404) {
         // No settings found, return null or throw specific error
-        throw new Error('No settings found');
+        throw new Error("No settings found");
       }
-      throw new Error('Failed to fetch user settings');
+      throw new Error("Failed to fetch user settings");
     }
 
     return response.json();
   }
 
-  static async createUserSettings(token: string, settings: UserSettingsRequest): Promise<UserSettings> {
+  static async createUserSettings(
+    token: string,
+    settings: UserSettingsRequest
+  ): Promise<UserSettings> {
     const response = await fetch(`${BACKEND_URL}/api/v1/settings/`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(settings),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create user settings');
+      throw new Error("Failed to create user settings");
     }
 
     return response.json();
   }
 
-  static async updateUserSettings(token: string, settings: UserSettingsRequest): Promise<UserSettings> {
+  static async updateUserSettings(
+    token: string,
+    settings: UserSettingsRequest
+  ): Promise<UserSettings> {
     const response = await fetch(`${BACKEND_URL}/api/v1/settings/`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(settings),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update user settings');
+      throw new Error("Failed to update user settings");
     }
 
     return response.json();

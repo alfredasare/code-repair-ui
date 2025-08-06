@@ -9,6 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -20,6 +32,7 @@ import {
   useUpdateUserSettings,
 } from "@/hooks/use-settings";
 import { Spinner } from "@/components/ui/spinner";
+import { Info } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 
@@ -246,7 +259,7 @@ export default function Settings() {
                     type="radio"
                     className="absolute inset-0 appearance-none focus:outline-none cursor-pointer"
                   />
-                  <span className="flex items-center">
+                  <span className="flex items-center justify-between w-full">
                     <span className="flex flex-col text-lg">
                       <span className="font-medium text-gray-900">
                         {pattern.name}
@@ -257,6 +270,60 @@ export default function Settings() {
                         </span>
                       </span>
                     </span>
+                    {"full_description" in pattern &&
+                      pattern.full_description && (
+                        <Sheet>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SheetTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="relative z-10 p-2 rounded-full hover:bg-black/5 transition-colors duration-200 cursor-pointer bg-white"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Info className="h-5 w-5 text-black" />
+                                </button>
+                              </SheetTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="top"
+                              className="bg-gray-900 text-white text-xs px-2 py-1 rounded border-0"
+                              sideOffset={5}
+                              // style={}
+                            >
+                              <p>{pattern.name} details</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          <SheetContent className="bg-white text-black p-6">
+                            <SheetHeader className="pb-4">
+                              <div className="flex items-center justify-between">
+                                <SheetTitle className="text-black">
+                                  {pattern.name} Details
+                                </SheetTitle>
+                              </div>
+                            </SheetHeader>
+                            <div className="mt-6">
+                              <p className="text-black leading-relaxed">
+                                Lorem ipsum dolor sit amet, consectetur
+                                adipiscing elit. Sed do eiusmod tempor
+                                incididunt ut labore et dolore magna aliqua. Ut
+                                enim ad minim veniam, quis nostrud exercitation
+                                ullamco laboris nisi ut aliquip ex ea commodo
+                                consequat. Duis aute irure dolor in
+                                reprehenderit in voluptate velit esse cillum
+                                dolore eu fugiat nulla pariatur.
+                              </p>
+                              <p className="text-black leading-relaxed mt-4">
+                                Excepteur sint occaecat cupidatat non proident,
+                                sunt in culpa qui officia deserunt mollit anim
+                                id est laborum. Sed ut perspiciatis unde omnis
+                                iste natus error sit voluptatem accusantium
+                                doloremque laudantium.
+                              </p>
+                            </div>
+                          </SheetContent>
+                        </Sheet>
+                      )}
                   </span>
                 </label>
               ))}
