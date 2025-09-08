@@ -113,7 +113,7 @@ export default function RepairDetail() {
     return null;
   }
 
-  // Helper function to strip markdown code block formatting
+  // Helper function to strip markdown code block formatting and normalize indentation
   const stripMarkdownCodeBlock = (code: string) => {
     // Remove opening ```language and closing ```
     const lines = code.split("\n");
@@ -131,6 +131,36 @@ export default function RepairDetail() {
     }
 
     return lines.slice(startIndex, endIndex).join("\n");
+  };
+
+  // Helper function to aggressively normalize whitespace for better diff comparison
+  const normalizeWhitespace = (code: string) => {
+    const lines = code.split("\n");
+
+    // Process each line to normalize whitespace
+    const normalizedLines = lines.map((line) => {
+      // If line is empty or only whitespace, keep it as empty
+      if (line.trim().length === 0) return "";
+
+      // Replace all sequences of whitespace with single spaces
+      // and trim leading/trailing whitespace
+      return line.replace(/\s+/g, " ").trim();
+    });
+
+    // Remove trailing empty lines
+    while (
+      normalizedLines.length > 0 &&
+      normalizedLines[normalizedLines.length - 1] === ""
+    ) {
+      normalizedLines.pop();
+    }
+
+    // Remove leading empty lines
+    while (normalizedLines.length > 0 && normalizedLines[0] === "") {
+      normalizedLines.shift();
+    }
+
+    return normalizedLines.join("\n");
   };
 
   // Transform evaluation scores to match the expected format
@@ -303,8 +333,10 @@ export default function RepairDetail() {
         </h2>
         <div className="bg-white rounded-xl border border-gray-900/5 p-6">
           <ReactDiffViewer
-            oldValue={assessment.vulnerable_code}
-            newValue={stripMarkdownCodeBlock(assessment.fixed_code)}
+            oldValue={normalizeWhitespace(assessment.vulnerable_code)}
+            newValue={normalizeWhitespace(
+              stripMarkdownCodeBlock(assessment.fixed_code)
+            )}
             splitView={true}
             hideLineNumbers={false}
             showDiffOnly={false}
