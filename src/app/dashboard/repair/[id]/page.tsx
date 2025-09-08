@@ -113,6 +113,26 @@ export default function RepairDetail() {
     return null;
   }
 
+  // Helper function to strip markdown code block formatting
+  const stripMarkdownCodeBlock = (code: string) => {
+    // Remove opening ```language and closing ```
+    const lines = code.split("\n");
+    let startIndex = 0;
+    let endIndex = lines.length;
+
+    // Find and remove opening ```language line
+    if (lines[0] && lines[0].trim().startsWith("```")) {
+      startIndex = 1;
+    }
+
+    // Find and remove closing ``` line
+    if (lines[lines.length - 1] && lines[lines.length - 1].trim() === "```") {
+      endIndex = lines.length - 1;
+    }
+
+    return lines.slice(startIndex, endIndex).join("\n");
+  };
+
   // Transform evaluation scores to match the expected format
   // Helper function to get pattern_id without underscore part
   const getPatternIdBase = (patternId: string) => {
@@ -284,7 +304,7 @@ export default function RepairDetail() {
         <div className="bg-white rounded-xl border border-gray-900/5 p-6">
           <ReactDiffViewer
             oldValue={assessment.vulnerable_code}
-            newValue={assessment.fixed_code}
+            newValue={stripMarkdownCodeBlock(assessment.fixed_code)}
             splitView={true}
             hideLineNumbers={false}
             showDiffOnly={false}
