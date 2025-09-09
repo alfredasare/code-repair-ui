@@ -92,3 +92,22 @@ export function useUpdateUserSettings() {
     },
   });
 }
+
+export function useDataSources(params?: {
+  db_type?: "vector" | "graph";
+  active_only?: boolean;
+}) {
+  const { token } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['dataSources', params],
+    queryFn: () => {
+      if (!token) {
+        throw new Error('No authentication token');
+      }
+      return SettingsAPI.getDataSources(token, params);
+    },
+    enabled: !!token,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}

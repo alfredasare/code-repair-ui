@@ -32,7 +32,9 @@ import {
   useUserSettings,
   useCreateUserSettings,
   useUpdateUserSettings,
+  useDataSources,
 } from "@/hooks/use-settings";
+import type { DataSource, PatternsResponse } from "@/lib/api/settings";
 import { Spinner } from "@/components/ui/spinner";
 import { Info } from "lucide-react";
 import React from "react";
@@ -40,9 +42,32 @@ import { toast } from "sonner";
 
 // We'll set defaults dynamically when data loads
 
-const schema = yup.object({
+const createSchema = (dataSourcesData?: DataSource[], patternsData?: PatternsResponse) => yup.object({
   llmModel: yup.string().required("LLM Model is required"),
-  pattern: yup.string().required("Pattern selection is required"),
+  dataSource: yup.string().nullable(),
+  pattern: yup.string().required("Pattern selection is required")
+    .test("pattern-datasource-compatibility", "This pattern is not compatible with the selected data source", function(value) {
+      const { dataSource } = this.parent;
+      
+      if (!value || !dataSource || dataSource === "default") {
+        return true; // Allow any pattern when default is selected
+      }
+      
+      const selectedDataSource = dataSourcesData?.find(ds => ds.id === dataSource);
+      const selectedPattern = patternsData?.patterns?.find(p => p.pattern_id === value);
+      
+      if (!selectedDataSource || !selectedPattern) {
+        return true; // Let other validations handle missing data
+      }
+      
+      // Graph data sources can only be used with patterns that have "_graph" in their id
+      if (selectedDataSource.db_type === "graph") {
+        return selectedPattern.pattern_id.includes("_graph");
+      }
+      
+      // Vector data sources (or any other type) can be used with any pattern that doesn't have "_graph"
+      return !selectedPattern.pattern_id.includes("_graph");
+    }),
   retrievalK: yup
     .number()
     .transform((value, originalValue) => {
@@ -73,17 +98,36 @@ export default function Settings() {
     isLoading: patternsLoading,
     error: patternsError,
   } = usePatterns();
+  const {
+    data: dataSourcesData,
+    isLoading: dataSourcesLoading,
+    error: dataSourcesError,
+  } = useDataSources();
   const { data: userSettings, isLoading: userSettingsLoading } =
     useUserSettings();
 
   const createUserSettings = useCreateUserSettings();
   const updateUserSettings = useUpdateUserSettings();
 
+  // Create dynamic schema based on loaded data
+  const schema = React.useMemo(() => {
+    return createSchema(dataSourcesData, patternsData);
+  }, [dataSourcesData, patternsData]);
+
   // Calculate form defaults
   const formDefaults = React.useMemo(() => {
     if (modelsData?.models.length && patternsData?.patterns.length) {
+      // Determine current data source based on existing settings
+      let currentDataSource = "";
+      if (userSettings?.vector_data_source_id) {
+        currentDataSource = userSettings.vector_data_source_id;
+      } else if (userSettings?.graph_data_source_id) {
+        currentDataSource = userSettings.graph_data_source_id;
+      }
+
       return {
         llmModel: userSettings?.model_id || modelsData.models[0].model_id,
+        dataSource: currentDataSource || "default",
         pattern:
           userSettings?.pattern_id || patternsData.patterns[0].pattern_id,
         retrievalK: userSettings?.retrievalK || 5,
@@ -91,6 +135,7 @@ export default function Settings() {
     }
     return {
       llmModel: "",
+      dataSource: "default",
       pattern: "",
       retrievalK: 5,
     };
@@ -101,11 +146,35 @@ export default function Settings() {
     handleSubmit,
     reset,
     control,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: formDefaults,
   });
+
+  // Watch the data source selection to filter patterns
+  const selectedDataSource = watch("dataSource");
+
+  // Filter patterns based on selected data source
+  const availablePatterns = React.useMemo(() => {
+    if (!patternsData?.patterns || !selectedDataSource || selectedDataSource === "default") {
+      return patternsData?.patterns || [];
+    }
+
+    const dataSourceObj = dataSourcesData?.find(ds => ds.id === selectedDataSource);
+    if (!dataSourceObj) {
+      return patternsData?.patterns || [];
+    }
+
+    if (dataSourceObj.db_type === "graph") {
+      // Graph data sources: only patterns with "_graph" in their id
+      return patternsData.patterns.filter(pattern => pattern.pattern_id.includes("_graph"));
+    } else {
+      // Vector data sources: patterns without "_graph" in their id
+      return patternsData.patterns.filter(pattern => !pattern.pattern_id.includes("_graph"));
+    }
+  }, [patternsData, selectedDataSource, dataSourcesData]);
 
   // Reset form when defaults change
   React.useEffect(() => {
@@ -114,16 +183,41 @@ export default function Settings() {
     }
   }, [formDefaults, reset]);
 
+  // Clear pattern selection if current pattern is not compatible with selected data source
+  React.useEffect(() => {
+    const currentPattern = watch("pattern");
+    if (currentPattern && !availablePatterns.find(p => p.pattern_id === currentPattern)) {
+      // Current pattern is not in available patterns, clear it
+      reset(prev => ({ ...prev, pattern: availablePatterns[0]?.pattern_id || "" }));
+    }
+  }, [availablePatterns, watch, reset]);
+
   const onSubmit = async (data: {
     llmModel: string;
+    dataSource?: string | null;
     pattern: string;
     retrievalK: number;
   }) => {
+    // Find the selected data source to determine its type
+    const selectedDataSource = dataSourcesData?.find(ds => ds.id === data.dataSource);
+    
     const settingsData = {
       model_id: data.llmModel,
       pattern_id: data.pattern,
       retrievalK: data.retrievalK,
+      vector_data_source_id: null as string | null,
+      graph_data_source_id: null as string | null,
     };
+
+    // Set the appropriate data source field based on the selected data source's type
+    if (selectedDataSource && data.dataSource && data.dataSource !== "default") {
+      if (selectedDataSource.db_type === "vector") {
+        settingsData.vector_data_source_id = data.dataSource;
+      } else if (selectedDataSource.db_type === "graph") {
+        settingsData.graph_data_source_id = data.dataSource;
+      }
+    }
+    // If "Use Default" is selected or no data source, both fields remain null
 
     try {
       if (userSettings) {
@@ -159,6 +253,7 @@ export default function Settings() {
     // Reset to first available options or defaults
     const resetValues = {
       llmModel: modelsData?.models[0]?.model_id || "",
+      dataSource: "default",
       pattern: patternsData?.patterns[0]?.pattern_id || "",
       retrievalK: 5,
     };
@@ -166,7 +261,7 @@ export default function Settings() {
   };
 
   // Show loading state while fetching data
-  if (modelsLoading || patternsLoading || userSettingsLoading) {
+  if (modelsLoading || patternsLoading || dataSourcesLoading || userSettingsLoading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-white min-h-screen">
         <Spinner size="lg" color="black" />
@@ -175,7 +270,7 @@ export default function Settings() {
   }
 
   // Show error state if critical requests failed (ignore user settings 404)
-  if (modelsError || patternsError) {
+  if (modelsError || patternsError || dataSourcesError) {
     return (
       <div className="max-w-3xl mx-auto mt-10">
         <div className="rounded-md bg-red-50 p-4">
@@ -241,6 +336,57 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* Data Source Selection */}
+        <div>
+          <label className="block text-lg font-medium text-gray-900 mb-3 cursor-pointer">
+            Data Source
+          </label>
+          <Controller
+            name="dataSource"
+            control={control}
+            render={({ field }) => (
+              <Select
+                key={`datasource-${userSettings?.vector_data_source_id || userSettings?.graph_data_source_id || "default"}-${
+                  field.value
+                }`}
+                value={field.value || ""}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger className="w-full cursor-pointer focus-visible:ring-1 text-lg py-6 px-4">
+                  <SelectValue placeholder="Select a data source" />
+                </SelectTrigger>
+                <SelectContent className="bg-white cursor-pointer text-lg">
+                  <SelectItem 
+                    value="default"
+                    className="cursor-pointer text-lg"
+                  >
+                    Default
+                  </SelectItem>
+                  {dataSourcesData?.map((dataSource) => {
+                    const displayName = `${dataSource.name} (${dataSource.db_type})`;
+                    return (
+                      <SelectItem
+                        key={dataSource.id}
+                        value={dataSource.id}
+                        className="cursor-pointer text-lg"
+                      >
+                        {displayName}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          <div className="h-5">
+            {errors.dataSource && (
+              <p className="text-sm text-red-600 mt-1">
+                {errors.dataSource.message}
+              </p>
+            )}
+          </div>
+        </div>
+
         {/* Pattern Selection */}
         <div>
           <fieldset aria-label="Pattern selection">
@@ -248,7 +394,7 @@ export default function Settings() {
               Pattern
             </legend>
             <div className="space-y-4">
-              {patternsData?.patterns.map((pattern) => (
+              {availablePatterns.map((pattern) => (
                 <label
                   key={pattern.id}
                   aria-label={pattern.name}
