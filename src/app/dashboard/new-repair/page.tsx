@@ -122,6 +122,7 @@ export default function NewAssessment() {
         cve_id: cveId,
         model_id: userSettings.model_id,
         pattern_id: userSettings.pattern_id,
+        graph_visualization: queryResult.results.graph_visualization,
       };
 
       const storeResult = await storeResultsMutation.mutateAsync(storeData);

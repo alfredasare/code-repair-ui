@@ -70,6 +70,7 @@ export interface StoreResultsRequest {
   cve_id: string;
   model_id: string;
   pattern_id: string;
+  graph_visualization?: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export interface StoreResultsResponse {
@@ -91,6 +92,7 @@ export interface Assessment {
   cve_id: string;
   model_id: string;
   pattern_id: string;
+  graph_visualization?: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   date_created: string;
   date_modified: string;
 }
@@ -274,6 +276,9 @@ export class AssessmentAPI {
 
   // Helper function to determine model type
   static getModelType(modelId: string): "openai" | "groq" {
-    return modelId.toLowerCase().includes("gpt") ? "openai" : "groq";
+    return modelId.toLowerCase().includes("gpt") &&
+      !modelId.toLowerCase().includes("gpt-oss")
+      ? "openai"
+      : "groq";
   }
 }
