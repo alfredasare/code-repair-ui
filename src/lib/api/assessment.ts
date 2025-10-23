@@ -58,13 +58,13 @@ export interface EvaluateResponse {
   cve_id: string;
   cwe_id: string;
   scores: Record<string, number>;
-  evaluation_reasons: Record<string, any>;
+  reasons: Record<string, any>;
 }
 
 // Store results types
 export interface StoreResultsRequest {
   scores: Record<string, any>;
-  evaluation_reasons: Record<string, any>;
+  reasons: Record<string, any>;
   recommendation: string;
   vulnerable_code: string;
   fixed_code: string;

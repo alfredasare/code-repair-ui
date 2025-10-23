@@ -115,7 +115,7 @@ export default function NewAssessment() {
       // Step 5: Store the results
       const storeData = {
         scores: evaluateResult.scores,
-        evaluation_reasons: evaluateResult.evaluation_reasons,
+        reasons: evaluateResult.reasons,
         recommendation: recommendationResult.recommendation,
         vulnerable_code: data.codeSnippet,
         fixed_code: fixResult.fixed_code,
