@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import ReactMarkdown from "react-markdown";
@@ -8,6 +9,12 @@ import { useAssessment } from "@/hooks/use-assessment";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   GraphVisualization,
   type GraphData,
@@ -21,6 +28,7 @@ const ReactDiffViewer = dynamic(() => import("react-diff-viewer"), {
 export default function RepairDetail() {
   const params = useParams();
   const assessmentId = params.id as string;
+  const showTooltips = true;
   const {
     data: assessment,
     isLoading,
@@ -178,26 +186,39 @@ export default function RepairDetail() {
   const evaluationMetrics = [
     {
       name: "Relevance",
+      scoreKey: "Relevance Score",
       value: assessment.evaluation_scores["Relevance Score"] || 0,
+      reason: assessment.evaluation_reasons?.["Relevance Score"],
     },
     {
       name: "Correctness",
+      scoreKey: "Correctness Score",
       value: assessment.evaluation_scores["Correctness Score"] || 0,
+      reason: assessment.evaluation_reasons?.["Correctness Score"],
     },
     {
       name: "Completeness",
+      scoreKey: "Completeness Score",
       value: assessment.evaluation_scores["Completeness Score"] || 0,
+      reason: assessment.evaluation_reasons?.["Completeness Score"],
     },
     {
       name: "Id. of Vulnerable Code",
+      scoreKey: "Identification of Vulnerable Code Score",
       value:
         assessment.evaluation_scores[
           "Identification of Vulnerable Code Score"
         ] || 0,
+      reason:
+        assessment.evaluation_reasons?.[
+          "Identification of Vulnerable Code Score"
+        ],
     },
     {
       name: "Code Guidance",
+      scoreKey: "Code Guidance Score",
       value: assessment.evaluation_scores["Code Guidance Score"] || 0,
+      reason: assessment.evaluation_reasons?.["Code Guidance Score"],
     },
   ];
 
@@ -247,27 +268,47 @@ export default function RepairDetail() {
               <h2 className="text-3xl font-semibold text-gray-900 mb-4">
                 Evaluation Results
               </h2>
-              <dl className="mx-auto grid grid-cols-1 gap-px bg-gray-900/5 sm:grid-cols-2 lg:grid-cols-5 border border-gray-900/5 rounded-xl">
-                {evaluationMetrics.map((metric, index) => (
-                  <div
-                    key={metric.name}
-                    className={`flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8 ${
-                      index === 0
-                        ? "rounded-l-xl"
-                        : index === evaluationMetrics.length - 1
-                        ? "rounded-r-xl"
-                        : ""
-                    }`}
-                  >
-                    <dt className="text-md/6 font-medium text-gray-500">
-                      {metric.name}
-                    </dt>
-                    <dd className="w-full flex-none text-3xl/10 font-medium tracking-tight text-gray-900">
-                      {metric.value.toFixed(2)}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
+              <TooltipProvider>
+                <dl className="mx-auto grid grid-cols-1 gap-px bg-gray-900/5 sm:grid-cols-2 lg:grid-cols-5 border border-gray-900/5 rounded-xl">
+                  {evaluationMetrics.map((metric, index) => (
+                    <div
+                      key={metric.name}
+                      className={`flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8 ${
+                        index === 0
+                          ? "rounded-l-xl"
+                          : index === evaluationMetrics.length - 1
+                          ? "rounded-r-xl"
+                          : ""
+                      }`}
+                    >
+                      <dt className="text-md/6 font-medium text-gray-500">
+                        {metric.name}
+                      </dt>
+                      <dd className="w-full flex-none text-3xl/10 font-medium tracking-tight text-gray-900">
+                        {showTooltips && metric.reason ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="cursor-help">
+                                {metric.value.toFixed(2)}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="bottom"
+                              align="center"
+                              sideOffset={10}
+                              className="max-w-md bg-gray-900 text-white border border-gray-700 shadow-lg"
+                            >
+                              <p className="text-sm">{metric.reason}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <span>{metric.value.toFixed(2)}</span>
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </TooltipProvider>
             </div>
 
             <div>

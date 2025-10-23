@@ -58,11 +58,13 @@ export interface EvaluateResponse {
   cve_id: string;
   cwe_id: string;
   scores: Record<string, number>;
+  evaluation_reasons: Record<string, any>;
 }
 
 // Store results types
 export interface StoreResultsRequest {
-  scores: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  scores: Record<string, any>;
+  evaluation_reasons: Record<string, any>;
   recommendation: string;
   vulnerable_code: string;
   fixed_code: string;
@@ -70,7 +72,7 @@ export interface StoreResultsRequest {
   cve_id: string;
   model_id: string;
   pattern_id: string;
-  graph_visualization?: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  graph_visualization?: Record<string, any>;
 }
 
 export interface StoreResultsResponse {
@@ -85,6 +87,7 @@ export interface Assessment {
   id: string;
   user_id: string;
   evaluation_scores: Record<string, number>;
+  evaluation_reasons: Record<string, any>;
   recommendation: string;
   vulnerable_code: string;
   fixed_code: string;
